@@ -1,0 +1,13 @@
+{
+    "title": "Portfolio Template",
+    "description": "Un portfolio moderne pour administrateur système, conçu avec Docker et Node.js.",
+    "keywords": [
+        "sysadmin",
+        "devops",
+        "portfolio",
+        "docker",
+        "linux"
+    ],
+    "image": "https://example.com/assets/preview_example.jpg",
+    "twitterHandle": "@username"
+}

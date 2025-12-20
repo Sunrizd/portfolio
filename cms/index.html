@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROOT // VISUAL EDITOR</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <!-- SortableJS for Drag n Drop -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <!-- JSON Editor (Fallback) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.10.0/jsoneditor.min.css" rel="stylesheet"
+        type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.10.0/jsoneditor.min.js"></script>
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <style>
+        /* CATPPUCCIN MOCHA THEME */
+        :root {
+            --ctp-base: #1e1e2e;
+            --ctp-mantle: #181825;
+            --ctp-crust: #11111b;
+            --ctp-text: #cdd6f4;
+            --ctp-subtext0: #a6adc8;
+            --ctp-overlay0: #6c7086;
+            --ctp-surface0: #313244;
+            --ctp-surface1: #45475a;
+            --ctp-mauve: #cba6f7;
+            --ctp-blue: #89b4fa;
+            --ctp-green: #a6e3a1;
+            --ctp-red: #f38ba8;
+            --ctp-peach: #fab387;
+
+            --bg-dark: var(--ctp-base);
+            --bg-panel: var(--ctp-mantle);
+            --border: var(--ctp-surface0);
+            --primary: var(--ctp-mauve);
+            --danger: var(--ctp-red);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--ctp-text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* QUILL OVERRIDES FOR DARK THEME */
+        .ql-toolbar.ql-snow {
+            border-color: var(--ctp-surface1) !important;
+            background: var(--ctp-surface0);
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        .ql-container.ql-snow {
+            border-color: var(--ctp-surface1) !important;
+            background: var(--ctp-mantle);
+            color: var(--ctp-text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+
+        .ql-stroke {
+            stroke: var(--ctp-subtext0) !important;
+        }
+
+        .ql-fill {
+            fill: var(--ctp-subtext0) !important;
+        }
+
+        .ql-picker {
+            color: var(--ctp-subtext0) !important;
+        }
+
+        .ql-editor.ql-blank::before {
+            color: var(--ctp-overlay0) !important;
+            font-style: normal;
+        }
+
+        /* SIDEBAR */
+        aside {
+            width: 260px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .brand {
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand::before {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            color: var(--ctp-overlay0);
+            margin: 15px 0 5px 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        nav button {
+            background: transparent;
+            border: none;
+            color: var(--ctp-subtext0);
+            width: 100%;
+            text-align: left;
+            padding: 10px 14px;
+            margin-bottom: 2px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        nav button:hover {
+            background: var(--ctp-surface0);
+            color: var(--ctp-text);
+        }
+
+        nav button.active {
+            background: var(--ctp-surface0);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+        }
+
+        /* MAIN */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        header {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(30, 30, 46, 0.95);
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .btn-save {
+            background: var(--primary);
+            color: var(--ctp-crust);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(203, 166, 247, 0.4);
+        }
+
+        /* CONTENT AREA */
+        #content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            padding-bottom: 100px;
+        }
+
+        /* CARDS GRID (For Lists) */
+        .cards_grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--ctp-surface0);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .card.draggable {
+            cursor: move;
+        }
+
+        .card.draggable:hover {
+            border-color: var(--primary);
+        }
+
+        .card.sortable-ghost {
+            opacity: 0.4;
+            border: 2px dashed var(--primary);
+        }
+
+        /* FORM STYLES (For Single Objects) */
+        .single-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--ctp-surface0);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            color: var(--ctp-blue);
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--ctp-overlay0);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            background: var(--ctp-mantle);
+            border: 1px solid var(--ctp-surface1);
+            color: var(--ctp-text);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(203, 166, 247, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.5;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--ctp-subtext0);
+            padding: 5px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: var(--ctp-surface1);
+            color: var(--ctp-text);
+        }
+
+        .btn-delete {
+            color: var(--danger);
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .btn-delete:hover {
+            background: rgba(243, 139, 168, 0.1);
+            color: var(--danger);
+        }
+
+        .add-card {
+            border: 2px dashed var(--ctp-surface1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--ctp-subtext0);
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .add-card:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(203, 166, 247, 0.05);
+        }
+
+        /* NOTIFICATION */
+        #notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--ctp-mantle);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 16px 24px;
+            color: var(--primary);
+            font-family: 'Fira Code', monospace;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        #notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* JSON EDITOR (Advanced) */
+        #json-editor-wrapper {
+            height: 100%;
+            display: none;
+        }
+
+        .jsoneditor {
+            border: none !important;
+            background: var(--bg-dark) !important;
+        }
+
+        .jsoneditor-menu {
+            background: var(--bg-panel) !important;
+            border-bottom: 1px solid var(--border) !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside>
+        <div class="brand">ROOT_VISUAL</div>
+        <nav>
+            <div class="nav-section-title">Global</div>
+            <button onclick="setView('general')">⚙️ Infos Générales</button>
+            <button onclick="setView('social')">🌐 Réseaux Sociaux</button>
+
+            <div class="nav-section-title">Contenu</div>
+            <button class="active" onclick="setView('projects')">📁 Projets</button>
+            <button onclick="setView('futureProjects')">🔮 Projets Futurs</button>
+            <button onclick="setView('skills')">⚡ Compétences</button>
+            <button onclick="setView('formations')">🎓 Formations</button>
+
+            <div class="nav-section-title">Textes du Site</div>
+            <button onclick="setView('text_hero')">👋 Hero Header</button>
+            <button onclick="setView('text_about')">🧑‍💻 A Propos</button>
+            <button onclick="setView('text_contact')">📧 Contact & Footer</button>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); width: 100%; margin: 20px 0;">
+            <button onclick="setView('json')">🛠️ Code Source (JSON)</button>
+        </nav>
+        <div style="margin-top: auto;">
+            <a href="/" target="_blank"
+                style="color: var(--ctp-subtext0); text-decoration: none; font-size: 0.8rem; display: block; padding: 10px;">↗
+                Ouvrir le site</a>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <h1 id="page-title">Mes Projets</h1>
+            <button class="btn-save" onclick="saveData()">SAUVEGARDER</button>
+        </header>
+
+        <div id="content-area"></div>
+        <div id="json-editor-wrapper"></div>
+    </main>
+
+    <div id="notification">✔ Sauvegardé</div>
+
+    <script>
+        // GLOBAL STATE
+        let fullConfig = {};
+        let currentView = 'projects';
+        let jsonEditorInstance = null;
+
+        // DEFINITION DES VUES
+        // 'list' = tableau d'objets (drag n drop)
+        // 'object' = objet unique (formulaire simple)
+        const VIEW_CONFIG = {
+            // LISTES
+            projects: { type: 'list', title: 'Mes Projets' },
+            futureProjects: { type: 'list', title: 'Projets Futurs' },
+            skills: { type: 'list', title: 'Compétences Techniques' },
+            formations: { type: 'list', title: 'Parcours Académique' },
+
+            // OBJETS GLOBAUX
+            general: { type: 'object', title: 'Informations Générales' },
+            social: { type: 'object', title: 'Réseaux Sociaux' },
+
+            // TEXTES (Sous-objets)
+            text_hero: { type: 'text_section', target: 'hero', title: 'Contenu Hero' },
+            text_about: { type: 'text_section', target: 'about', title: 'Contenu A Propos' },
+            text_contact: { type: 'text_section', target: 'contact', title: 'Contact & Footer' }
+        };
+
+        const TEMPLATES = {
+            projects: { title_fr: "Nouveau Projet", description_fr: "Description...", tags: ["#Tag"], icon: "📁", details_fr: [] },
+            futureProjects: { title_fr: "Idée Projet", description_fr: "Description...", icon: "🔮" },
+            skills: { title_fr: "Nouvelle Catégorie", items: ["Compétence 1"] },
+            formations: { text_fr: "Nouvelle Formation" }
+        };
+
+        // INIT
+        async function init() {
+            try {
+                const res = await fetch('/api/get?file=config.json');
+                fullConfig = await res.json();
+
+                // Init JSON Editor fallback
+                const container = document.getElementById("json-editor-wrapper");
+                jsonEditorInstance = new JSONEditor(container, { mode: 'code' });
+
+                setView('projects'); // Start on projects
+            } catch (e) {
+                alert("Erreur chargement config: " + e);
+            }
+        }
+
+        function setView(viewName) {
+            // Sync before switch
+            if (currentView === 'json') {
+                try { fullConfig = jsonEditorInstance.get(); } catch (e) { return alert("JSON Invalide"); }
+            }
+
+            currentView = viewName;
+
+            // Update Nav
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            const buttons = Array.from(document.querySelectorAll('nav button'));
+            const btn = buttons.find(b => b.onclick.toString().includes(`'${viewName}'`));
+
+            if (btn) btn.classList.add('active');
+
+            renderView();
+        }
+
+        function renderView() {
+            const titleEl = document.getElementById('page-title');
+            const contentEl = document.getElementById('content-area');
+            const jsonEl = document.getElementById('json-editor-wrapper');
+
+            contentEl.innerHTML = '';
+
+            if (currentView === 'json') {
+                titleEl.innerText = "EDITEUR JSON AVANCÉ";
+                contentEl.style.display = 'none';
+                jsonEl.style.display = 'block';
+                jsonEditorInstance.set(fullConfig);
+                return;
+            }
+
+            jsonEl.style.display = 'none';
+            contentEl.style.display = 'block';
+
+            const config = VIEW_CONFIG[currentView];
+            titleEl.innerText = config.title;
+
+            if (config.type === 'list') {
+                renderList(currentView, fullConfig[currentView]);
+            } else if (config.type === 'object') {
+                renderObjectForm(currentView);
+            } else if (config.type === 'text_section') {
+                renderObjectForm('text', config.target);
+            }
+        }
+
+        // --- RENDERERS ---
+
+        function renderList(key, list) {
+            const grid = document.createElement('div');
+            grid.className = 'cards_grid';
+
+            list.forEach((item, index) => {
+                const card = createCardHTML(key, item, index);
+                grid.appendChild(card);
+            });
+
+            // Add Button
+            const addBtn = document.createElement('div');
+            addBtn.className = 'add-card';
+            addBtn.innerHTML = '<span style="font-size:2rem">+</span><span>Ajouter</span>';
+            addBtn.onclick = () => addItem(key);
+            grid.appendChild(addBtn);
+
+            document.getElementById('content-area').appendChild(grid);
+
+            // Sortable
+            new Sortable(grid, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                handle: '.card',
+                filter: 'input, textarea, button',
+                preventOnFilter: false,
+                onEnd: function (evt) {
+                    if (evt.newIndex >= list.length) return;
+                    const item = list.splice(evt.oldIndex, 1)[0];
+                    list.splice(evt.newIndex, 0, item);
+                }
+            });
+        }
+
+        function renderObjectForm(rootKey, subKey = null) {
+            const container = document.createElement('div');
+            container.className = 'single-form-container';
+
+            let data = fullConfig;
+            if (rootKey === 'text') {
+                data = fullConfig.text[subKey]; // e.g. fullConfig.text.hero
+            } else if (rootKey === 'social') {
+                data = fullConfig.social;
+            } else {
+                // General settings which are at root but we filter specific ones
+                data = fullConfig; // We will pick fields manually below
+            }
+
+            let html = '';
+
+            // GENERATION DES CHAMPS SELON LE CAS
+            if (rootKey === 'general') {
+                html += createField(data, 'name', 'Nom Complet');
+                html += createField(data, 'email', 'Email de contact');
+                html += createField(data, 'copyrightYear', 'Année Copyright');
+                html += createField(data, 'cvPath', 'Lien CV (ex: /files/cv.pdf)');
+            }
+            else if (rootKey === 'social') {
+                html += createField(data, 'github', 'Lien GitHub');
+                html += createField(data, 'linkedin', 'Lien LinkedIn');
+            }
+            else if (rootKey === 'text') {
+                // Iterate over all keys in the text object section
+                for (const [key, val] of Object.entries(data)) {
+                    if (typeof val === 'string') {
+                        // Simple Label generation
+                        let label = key.charAt(0).toUpperCase() + key.slice(1);
+                        if (key === 'ctaPrimary') label = "Bouton Principal";
+                        if (key === 'ctaSecondary') label = "Bouton Secondaire";
+
+                        if (key === 'content') {
+                            html += `
+                                <div class="form-group">
+                                    <label class="form-label">${label}</label>
+                                    <div id="quill-editor" style="height: 200px;"></div>
+                                </div>`;
+                        } else {
+                            html += createField(data, key, label, val.length > 50);
+                        }
+                    }
+                }
+            }
+
+            container.innerHTML = html;
+            document.getElementById('content-area').appendChild(container);
+
+            // Init Quill if present
+            if (rootKey === 'text' && document.getElementById('quill-editor')) {
+                var quill = new Quill('#quill-editor', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['link', 'clean']
+                        ]
+                    }
+                });
+                // Set initial content
+                quill.root.innerHTML = data['content'] || '';
+
+                // Sync on change
+                quill.on('text-change', function () {
+                    data['content'] = quill.root.innerHTML;
+                });
+            }
+
+            // Bind events manually because string injection limits closure scope
+            // Re-attach listeners is tricky with string concat, so we use global-ish inputs query
+            // Actually, cleaner way:
+            const inputs = container.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    data[e.target.dataset.key] = e.target.value;
+                });
+            });
+        }
+
+        // HELPER FOR SINGLE FIELDS
+        function createField(dataObj, key, label, isTextarea = false) {
+            // Warning: dataObj is passed by reference but string templating loses it.
+            // We will bind data-key to find it back in the generic listener above.
+            const val = dataObj[key] || '';
+            const inputHtml = isTextarea
+                ? `<textarea class="form-textarea" data-key="${key}">${val}</textarea>`
+                : `<input class="form-input" data-key="${key}" value="${val}">`;
+
+            return `
+            <div class="form-group">
+                <label class="form-label">${label}</label>
+                ${inputHtml}
+            </div>
+        `;
+        }
+
+        // HELPER FOR CARDS (Lists)
+        function createCardHTML(type, data, index) {
+            const card = document.createElement('div');
+            card.className = 'card draggable';
+
+            const deleteBtn = `<button class="btn-icon btn-delete" onclick="deleteItem('${type}', ${index})">✕</button>`;
+
+            let inner = '';
+            if (type.includes('rojects')) { // projects & futureProjects
+                inner = `
+                <div class="form-group">
+                    <label class="form-label">Titre</label>
+                    <input class="form-input" value="${data.title_fr || ''}" oninput="updateItem('${type}', ${index}, 'title_fr', this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" oninput="updateItem('${type}', ${index}, 'description_fr', this.value)">${data.description_fr || ''}</textarea>
+                </div>
+            `;
+                if (type === 'projects') {
+                    inner += `
+                <div class="form-group">
+                    <label class="form-label">Tags</label>
+                    <input class="form-input" value="${(data.tags || []).join(', ')}" onchange="updateTags('${type}', ${index}, this.value)">
+                </div>`;
+                }
+            } else if (type === 'skills') {
+                inner = `
+                <div class="form-group">
+                    <label class="form-label">Catégorie</label>
+                    <input class="form-input" value="${data.title_fr || ''}" oninput="updateItem('${type}', ${index}, 'title_fr', this.value)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Compétences (1/ligne)</label>
+                    <textarea class="form-textarea" style="height:120px" oninput="updateList('${type}', ${index}, this.value)">${(data.items || []).join('\n')}</textarea>
+                </div>
+            `;
+            } else if (type === 'formations') {
+                inner = `
+                <div class="form-group">
+                    <label class="form-label">Intitulé</label>
+                    <textarea class="form-textarea" oninput="updateItem('${type}', ${index}, 'text_fr', this.value)">${data.text_fr || ''}</textarea>
+                </div>
+            `;
+            }
+
+            card.innerHTML = deleteBtn + inner;
+            return card;
+        }
+
+        // DATA UPDATERS
+        // Attach these to window to be accessible from oninput strings
+        window.updateItem = (listKey, index, field, val) => {
+            fullConfig[listKey][index][field] = val;
+        };
+        window.updateTags = (listKey, index, val) => {
+            fullConfig[listKey][index].tags = val.split(',').map(t => t.trim());
+        };
+        window.updateList = (listKey, index, val) => {
+            fullConfig[listKey][index].items = val.split('\n').filter(t => t.trim());
+        };
+        window.deleteItem = (listKey, index) => {
+            if (confirm("Confirmer la suppression ?")) {
+                fullConfig[listKey].splice(index, 1);
+                renderView();
+            }
+        };
+        window.addItem = (listKey) => {
+            const newItem = JSON.parse(JSON.stringify(TEMPLATES[listKey]));
+            fullConfig[listKey].push(newItem);
+            renderView();
+        };
+
+
+        // SAVE
+        window.saveData = async () => {
+            if (currentView === 'json') {
+                try { fullConfig = jsonEditorInstance.get(); } catch (e) { return alert("JSON Invalide"); }
+            }
+
+            try {
+                const res = await fetch('/api/save?file=config.json', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fullConfig)
+                });
+                if (res.ok) {
+                    // Notification style
+                    const n = document.getElementById('notification');
+                    n.innerText = "✔ Sauvegardé & Publié";
+                    n.classList.add('show');
+                    setTimeout(() => n.classList.remove('show'), 3000);
+                } else {
+                    alert("Erreur de sauvegarde");
+                }
+            } catch (e) {
+                alert("Erreur réseau: " + e);
+            }
+        };
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>

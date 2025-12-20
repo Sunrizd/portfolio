@@ -1,0 +1,38 @@
+{
+    "nav": {
+        "about": "./a_propos",
+        "skills": "./competences",
+        "projects": "./projets",
+        "contact": "./contact"
+    },
+    "hero": {
+        "prompt": "Initialisation du système...",
+        "subtitle": "Votre Titre Professionnel Ici",
+        "ctaPrimary": "Action Primaire",
+        "ctaSecondary": "Action Secondaire"
+    },
+    "about": {
+        "title": "> whoami",
+        "content": "Bonjour, je suis <strong>Votre Nom</strong>. Ceci est un texte de présentation par défaut. Vous pouvez le personnaliser dans le fichier fr.json."
+    },
+    "skills": {
+        "title": "> list --skills"
+    },
+    "education": {
+        "title": "> list --formations"
+    },
+    "projects": {
+        "title": "> cat projects.txt",
+        "futureTitle": "> todo --list"
+    },
+    "contact": {
+        "title": "> ping host",
+        "text": "Texte de contact par défaut.",
+        "downloadCv": "Télécharger mon CV"
+    },
+    "footer": {
+        "status": "État du Système:",
+        "statusText": "ONLINE",
+        "copyright": "Tous droits réservés."
+    }
+}

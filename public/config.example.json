@@ -1,0 +1,77 @@
+{
+    "name": "John Doe",
+    "theme": "catppuccin",
+    "email": "contact@example.com",
+    "social": {
+        "github": "https://github.com/username",
+        "linkedin": "https://linkedin.com/in/username"
+    },
+    "cvPath": "#",
+    "copyrightYear": "2025",
+    "text": {
+        "nav": {
+            "about": "À Propos",
+            "skills": "Compétences",
+            "projects": "Projets",
+            "contact": "Contact"
+        },
+        "hero": {
+            "prompt": "Init system...",
+            "subtitle": "SysAdmin | DevOps | Network",
+            "ctaPrimary": "Voir les Projets",
+            "ctaSecondary": "Me Contacter"
+        },
+        "about": {
+            "title": "> whoami",
+            "content": "<p>Je suis un passionné de <strong>Systèmes & Réseaux</strong>...</p>"
+        },
+        "skills": {
+            "title": "> list --skills"
+        },
+        "education": {
+            "title": "> list --education"
+        },
+        "projects": {
+            "title": "> ls ./projects",
+            "futureTitle": "> todo"
+        },
+        "contact": {
+            "title": "> ping me",
+            "text": "Disponible pour des opportunités.",
+            "downloadCv": "Télécharger CV"
+        },
+        "footer": {
+            "status": "System Status:",
+            "statusText": "ONLINE",
+            "copyright": "All rights reserved."
+        }
+    },
+    "skills": [
+        {
+            "title_fr": "Administration Système",
+            "items": [
+                "Linux",
+                "Windows Server",
+                "Docker"
+            ]
+        }
+    ],
+    "formations": [
+        {
+            "text_fr": "Diplôme d'Ingénieur - École X"
+        }
+    ],
+    "projects": [
+        {
+            "icon": "🚀",
+            "title_fr": "Projet Démo",
+            "description_fr": "Description courte du projet...",
+            "tags": [
+                "#Demo",
+                "#Tech"
+            ],
+            "details_fr": []
+        }
+    ],
+    "futureProjects": []
+}
